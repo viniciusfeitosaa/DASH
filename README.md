@@ -87,8 +87,9 @@ STDASH/
 ├── app.py              # Aplicação principal do Streamlit
 ├── requirements.txt    # Dependências do projeto
 ├── render.yaml         # Configuração para deploy no Render
-├── README.md          # Este arquivo
-└── .gitignore         # Arquivos a serem ignorados pelo Git
+├── logo.png            # Logo do dashboard
+├── README.md           # Este arquivo
+└── .gitignore          # Arquivos a serem ignorados pelo Git
 ```
 
 ## 💡 Como Usar
