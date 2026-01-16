@@ -469,8 +469,11 @@ else:
 # HTML da logo
 if logo_data_url:
     logo_img = f'<img src="{logo_data_url}" alt="Painel de Monitoramento" class="logo-image">'
+    # Ícone para cards do dashboard
+    card_logo_icon = f'<img src="{logo_data_url}" alt="Dashboard" style="width: 100%; height: 100%; object-fit: contain;">'
 else:
     logo_img = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 40px; height: 40px;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"></path></svg>'
+    card_logo_icon = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"></path></svg>'
 
 st.sidebar.markdown(f"""
     <div class="sidebar-header">
@@ -779,9 +782,7 @@ if selected_nav == "Geral":
         '<div class="card-header-modern">'
         '<div class="card-icon-wrapper">'
         '<div class="card-icon">'
-        '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">'
-        '<path stroke-linecap="round" stroke-linejoin="round" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"></path>'
-        '</svg>'
+        + card_logo_icon +
         '</div>'
         '</div>'
         '<div class="card-title-section">'
@@ -853,15 +854,6 @@ else:
         status_color = "rgb(16, 185, 129)" if sistema_info['status'] == 'ok' else "rgb(239, 68, 68)"
         total_registros = len(df_sistema)
         
-        # Ícones SVG para cada sistema
-        icon_svg_map = {
-            "Viva Saúde": '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>',
-            "Coop Vitta": '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>',
-            "Delta": '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
-        }
-        
-        svg_path = icon_svg_map.get(selected_nav, icon_svg_map["Viva Saúde"])
-        
         # Card específico do sistema (similar ao card geral)
         sistema_card_html = (
             f'<div class="system-card" id="{selected_nav.lower().replace(" ", "-")}-card" style="display: block;">'
@@ -869,9 +861,7 @@ else:
             '<div class="card-header-modern">'
             '<div class="card-icon-wrapper">'
             '<div class="card-icon">'
-            '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">'
-            f'{svg_path}'
-            '</svg>'
+            + card_logo_icon +
             '</div>'
             '</div>'
             '<div class="card-title-section">'
