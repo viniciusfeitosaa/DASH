@@ -896,23 +896,111 @@ else:
         
         # Módulo de Contratos Ativos (apenas para Viva Saúde)
         if selected_nav == "Viva Saúde":
-            contratos_html = (
-                '<div id="viva-saude-contratos-card" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">'
-                '<h3 style="font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 15px;">Contratos Ativos</h3>'
-                '<div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">'
-                '<button class="contrato-btn active" data-contrato="UPAS" type="button" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; cursor: pointer; transition: all 0.3s ease; color: rgba(255,255,255,0.9); font-size: 13px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;"><span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block;"></span><span>UPAS</span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px; margin-left: 4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path></svg></button>'
-                '<button class="contrato-btn" data-contrato="EVOLUIR" type="button" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; cursor: pointer; transition: all 0.3s ease; color: rgba(255,255,255,0.9); font-size: 13px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;"><span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block;"></span><span>EVOLUIR</span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px; margin-left: 4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path></svg></button>'
-                '<button class="contrato-btn" data-contrato="CPSS" type="button" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; cursor: pointer; transition: all 0.3s ease; color: rgba(255,255,255,0.9); font-size: 13px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;"><span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block;"></span><span>CPSS</span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px; margin-left: 4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path></svg></button>'
-                '<button class="contrato-btn" data-contrato="CRATEUS" type="button" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; cursor: pointer; transition: all 0.3s ease; color: rgba(255,255,255,0.9); font-size: 13px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;"><span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block;"></span><span>CRATEUS</span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px; margin-left: 4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path></svg></button>'
-                '<button class="contrato-btn" data-contrato="ITAPIPOCA" type="button" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; cursor: pointer; transition: all 0.3s ease; color: rgba(255,255,255,0.9); font-size: 13px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;"><span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block;"></span><span>ITAPIPOCA</span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px; margin-left: 4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path></svg></button>'
-                '</div>'
-                '<div id="viva-saude-financeiro-contratos" style="margin-top: 20px;"><div id="financeiro-UPAS" class="financeiro-contrato-section active" style="display: block;"><h4 style="font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">Financeiro - UPAS</h4><div id="financeiro-UPAS-content"><p style="color: rgba(255,255,255,0.5);">Dados ainda não disponíveis. Buscando...</p></div></div></div>'
-                '</div>'
-                '<style>.contrato-btn.active{background:rgba(16,185,129,0.15)!important;border-color:#10b981!important;}.contrato-btn:hover{background:rgba(255,255,255,0.1)!important;transform:translateY(-2px);}.financeiro-contrato-section{display:none;animation:fadeIn 0.3s ease-in-out;}.financeiro-contrato-section.active{display:block;}@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}</style>'
-                '<script>(function(){const contratoButtons=document.querySelectorAll(".contrato-btn");const sections=document.querySelectorAll(".financeiro-contrato-section");contratoButtons.forEach(button=>{button.addEventListener("click",function(){const contrato=this.getAttribute("data-contrato");contratoButtons.forEach(btn=>btn.classList.remove("active"));this.classList.add("active");sections.forEach(section=>section.classList.remove("active"));const targetSection=document.getElementById("financeiro-"+contrato);if(targetSection){targetSection.classList.add("active");}else{const container=document.getElementById("viva-saude-financeiro-contratos");const newSection=document.createElement("div");newSection.id="financeiro-"+contrato;newSection.className="financeiro-contrato-section active";newSection.innerHTML=`<h4 style="font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">Financeiro - ${contrato}</h4><div id="financeiro-${contrato}-content"><p style="color: rgba(255,255,255,0.5);">Dados ainda não disponíveis. Buscando...</p></div>`;container.appendChild(newSection);}});});})();</script>'
-            )
+            st.markdown('<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);"><h3 style="font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 15px;">Contratos Ativos</h3></div>', unsafe_allow_html=True)
             
-            st.markdown(contratos_html, unsafe_allow_html=True)
+            # Lista de contratos com seus GIDs (IDs das abas do Google Sheets)
+            contratos = {
+                "UPAS": "2145277226",
+                "EVOLUIR": "1328866497",
+                "CPSS": "1291655672",
+                "CRATEUS": "1439815652",
+                "ITAPIPOCA": "974197710"
+            }
+            
+            # Extrair sheet_id da URL principal
+            import re
+            sheet_id_match = re.search(r'/d/([a-zA-Z0-9-_]+)', DATA_URL)
+            sheet_id = sheet_id_match.group(1) if sheet_id_match else None
+            
+            for contrato, gid in contratos.items():
+                with st.expander(f"🟢 {contrato}", expanded=(contrato == "UPAS")):
+                    st.markdown(f'<h4 style="font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 12px;">Financeiro - {contrato}</h4>', unsafe_allow_html=True)
+                    
+                    try:
+                        # Tentar carregar dados da aba específica
+                        if sheet_id and gid:
+                            # Construir URL da aba específica
+                            url_aba = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
+                            df_contrato = pd.read_csv(url_aba)
+                        else:
+                            # Fallback: filtrar da planilha principal
+                            contrato_col = None
+                            for col in df.columns:
+                                col_lower = str(col).lower()
+                                if contrato.lower() in col_lower or any(keyword in col_lower for keyword in ['contrato', 'empresa']):
+                                    contrato_col = col
+                                    break
+                            
+                            if contrato_col:
+                                df_contrato = df[df[contrato_col].astype(str).str.contains(contrato, case=False, na=False)]
+                            else:
+                                df_contrato = df
+                        
+                        # Limpar dados vazios
+                        df_contrato = df_contrato.dropna(how='all').reset_index(drop=True)
+                        
+                        if len(df_contrato) == 0:
+                            st.warning(f"⚠️ Nenhum dado encontrado para {contrato}")
+                        else:
+                            # Tentar encontrar colunas com valores monetários
+                            valor_cols = []
+                            for col in df_contrato.columns:
+                                # Verificar se a coluna tem valores que parecem monetários
+                                sample = df_contrato[col].astype(str).head(5)
+                                if sample.str.contains(r'R\$|\.', regex=True).any():
+                                    valor_cols.append(col)
+                            
+                            # Converter colunas de valores para numérico
+                            for col in valor_cols:
+                                try:
+                                    df_contrato[col] = df_contrato[col].astype(str).str.replace('R$', '').str.replace('.', '').str.replace(',', '.').str.strip()
+                                    df_contrato[col] = pd.to_numeric(df_contrato[col], errors='coerce')
+                                except:
+                                    pass
+                            
+                            # Métricas financeiras
+                            col1, col2, col3 = st.columns(3)
+                            
+                            with col1:
+                                st.metric("📊 Total de Registros", len(df_contrato))
+                            
+                            # Calcular valores totais
+                            if len(valor_cols) >= 1:
+                                with col2:
+                                    primeira_col = valor_cols[0]
+                                    valor_total = df_contrato[primeira_col].sum()
+                                    if not pd.isna(valor_total) and valor_total > 0:
+                                        st.metric("💰 Total Geral", f"R$ {valor_total:,.2f}")
+                                    else:
+                                        st.metric("💰 Total Geral", "R$ 0,00")
+                                
+                                if len(valor_cols) >= 2:
+                                    with col3:
+                                        segunda_col = valor_cols[1]
+                                        valor_medio = df_contrato[segunda_col].mean()
+                                        if not pd.isna(valor_medio) and valor_medio > 0:
+                                            st.metric("📈 Valor Médio", f"R$ {valor_medio:,.2f}")
+                                        else:
+                                            st.metric("📈 Valor Médio", "R$ 0,00")
+                            
+                            # Mostrar tabela resumida
+                            st.markdown("---")
+                            st.markdown("**📋 Dados Detalhados:**")
+                            
+                            # Mostrar primeiras 10 linhas
+                            st.dataframe(
+                                df_contrato.head(10),
+                                use_container_width=True,
+                                hide_index=True
+                            )
+                            
+                            # Se houver muitos dados, mostrar total
+                            if len(df_contrato) > 10:
+                                st.caption(f"Mostrando 10 de {len(df_contrato)} registros totais")
+                    
+                    except Exception as e:
+                        st.error(f"❌ Erro ao carregar dados de {contrato}: {str(e)}")
+                        st.info(f"💡 Dica: Verifique se a aba '{contrato}' existe na planilha")
         
         
     else:
