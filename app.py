@@ -120,6 +120,114 @@ st.markdown("""
         margin-bottom: 0.75rem;
         padding: 0 0.5rem;
     }
+    
+    /* Estilização melhorada das tabelas (DataFrame) */
+    .stDataFrame {
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    }
+    
+    [data-testid="stDataFrameResizable"] {
+        border-radius: 12px !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background: rgba(255, 255, 255, 0.02) !important;
+        backdrop-filter: blur(10px) !important;
+    }
+    
+    /* Cabeçalho da tabela */
+    .stDataFrame thead {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%) !important;
+    }
+    
+    .stDataFrame th {
+        font-weight: 600 !important;
+        font-size: 0.875rem !important;
+        color: rgba(255, 255, 255, 0.95) !important;
+        padding: 12px 16px !important;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Células da tabela */
+    .stDataFrame td {
+        padding: 10px 16px !important;
+        font-size: 0.875rem !important;
+        color: rgba(255, 255, 255, 0.85) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    /* Linhas alternadas */
+    .stDataFrame tbody tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.02) !important;
+    }
+    
+    .stDataFrame tbody tr:hover {
+        background: rgba(59, 130, 246, 0.08) !important;
+        transition: background 0.2s ease !important;
+    }
+    
+    /* Scrollbar customizada */
+    .dvn-scroller::-webkit-scrollbar {
+        width: 8px !important;
+        height: 8px !important;
+    }
+    
+    .dvn-scroller::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border-radius: 4px !important;
+    }
+    
+    .dvn-scroller::-webkit-scrollbar-thumb {
+        background: rgba(59, 130, 246, 0.4) !important;
+        border-radius: 4px !important;
+    }
+    
+    .dvn-scroller::-webkit-scrollbar-thumb:hover {
+        background: rgba(59, 130, 246, 0.6) !important;
+    }
+    
+    /* Toolbar da tabela */
+    .stElementToolbar {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border-radius: 8px 8px 0 0 !important;
+        backdrop-filter: blur(10px) !important;
+    }
+    
+    [data-testid="stElementToolbarButton"] button {
+        color: rgba(255, 255, 255, 0.7) !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    [data-testid="stElementToolbarButton"] button:hover {
+        color: rgba(59, 130, 246, 1) !important;
+        background: rgba(59, 130, 246, 0.1) !important;
+    }
+    
+    /* Estilização dos expanders */
+    [data-testid="stExpander"] {
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 12px !important;
+        background: rgba(255, 255, 255, 0.02) !important;
+        backdrop-filter: blur(10px) !important;
+        overflow: hidden !important;
+        transition: all 0.3s ease !important;
+        margin-bottom: 12px !important;
+    }
+    
+    [data-testid="stExpander"]:hover {
+        border-color: rgba(59, 130, 246, 0.3) !important;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1) !important;
+    }
+    
+    [data-testid="stExpanderSummary"] {
+        background: rgba(255, 255, 255, 0.03) !important;
+        font-weight: 500 !important;
+    }
+    
+    [data-testid="stExpanderDetails"] {
+        padding: 20px !important;
+    }
+    
     .nav-items {
         display: flex;
         flex-direction: column;
@@ -921,6 +1029,7 @@ else:
                         if sheet_id and gid:
                             # Construir URL da aba específica
                             url_aba = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
+                            # Carregar CSV normalmente
                             df_contrato = pd.read_csv(url_aba)
                         else:
                             # Fallback: filtrar da planilha principal
@@ -942,61 +1051,292 @@ else:
                         if len(df_contrato) == 0:
                             st.warning(f"⚠️ Nenhum dado encontrado para {contrato}")
                         else:
-                            # Tentar encontrar colunas com valores monetários
-                            valor_cols = []
-                            for col in df_contrato.columns:
-                                # Verificar se a coluna tem valores que parecem monetários
-                                sample = df_contrato[col].astype(str).head(5)
-                                if sample.str.contains(r'R\$|\.', regex=True).any():
-                                    valor_cols.append(col)
-                            
-                            # Converter colunas de valores para numérico
-                            for col in valor_cols:
-                                try:
-                                    df_contrato[col] = df_contrato[col].astype(str).str.replace('R$', '').str.replace('.', '').str.replace(',', '.').str.strip()
-                                    df_contrato[col] = pd.to_numeric(df_contrato[col], errors='coerce')
-                                except:
-                                    pass
-                            
-                            # Métricas financeiras
-                            col1, col2, col3 = st.columns(3)
-                            
-                            with col1:
-                                st.metric("📊 Total de Registros", len(df_contrato))
-                            
-                            # Calcular valores totais
-                            if len(valor_cols) >= 1:
-                                with col2:
-                                    primeira_col = valor_cols[0]
-                                    valor_total = df_contrato[primeira_col].sum()
-                                    if not pd.isna(valor_total) and valor_total > 0:
-                                        st.metric("💰 Total Geral", f"R$ {valor_total:,.2f}")
-                                    else:
-                                        st.metric("💰 Total Geral", "R$ 0,00")
+                            # Lógica especial para UPAS - mostrar apenas valores em aberto
+                            if contrato == "UPAS":
+                                # Encontrar coluna SITUAÇÃO (mais variações)
+                                situacao_col = None
+                                for col in df_contrato.columns:
+                                    col_lower = str(col).lower().strip()
+                                    if any(keyword in col_lower for keyword in ['situa', 'status', 'situação', 'situacao', 'sit']):
+                                        situacao_col = col
+                                        break
                                 
-                                if len(valor_cols) >= 2:
-                                    with col3:
-                                        segunda_col = valor_cols[1]
-                                        valor_medio = df_contrato[segunda_col].mean()
-                                        if not pd.isna(valor_medio) and valor_medio > 0:
-                                            st.metric("📈 Valor Médio", f"R$ {valor_medio:,.2f}")
+                                # Se não encontrou, tentar pela primeira coluna que não seja numérica e tenha valores diferentes
+                                if not situacao_col:
+                                    for col in df_contrato.columns:
+                                        unique_vals = df_contrato[col].astype(str).str.upper().unique()
+                                        if 'OK' in unique_vals or any(val.isdigit() for val in unique_vals if val.strip()):
+                                            situacao_col = col
+                                            break
+                                
+                                # Encontrar coluna de mês/competência (mais variações)
+                                mes_col = None
+                                for col in df_contrato.columns:
+                                    col_lower = str(col).lower().strip()
+                                    if any(keyword in col_lower for keyword in ['compet', 'mês', 'mes', 'month', 'competencia', 'competência', 'periodo', 'período']):
+                                        mes_col = col
+                                        break
+                                
+                                # Encontrar colunas com valores monetários (mais robusto)
+                                valor_cols = []
+                                for col in df_contrato.columns:
+                                    # Verificar se tem R$ ou formato monetário
+                                    sample = df_contrato[col].astype(str).head(10)
+                                    has_currency = sample.str.contains(r'R\$|R\s*\$|reais|\.\d{3}', regex=True, case=False, na=False).any()
+                                    
+                                    # Verificar se tem números grandes (provavelmente valores)
+                                    try:
+                                        numeric_sample = pd.to_numeric(sample.str.replace('R$', '').str.replace('.', '').str.replace(',', '.').str.strip(), errors='coerce')
+                                        has_large_numbers = numeric_sample.notna().any() and numeric_sample.max() > 100
+                                    except:
+                                        has_large_numbers = False
+                                    
+                                    if has_currency or has_large_numbers:
+                                        valor_cols.append(col)
+                                
+                                # Se não encontrou, tentar todas as colunas numéricas
+                                if len(valor_cols) == 0:
+                                    for col in df_contrato.columns:
+                                        try:
+                                            numeric_vals = pd.to_numeric(df_contrato[col], errors='coerce')
+                                            if numeric_vals.notna().any() and numeric_vals.max() > 100:
+                                                valor_cols.append(col)
+                                        except:
+                                            pass
+                                
+                                # Converter valores para numérico
+                                for col in valor_cols:
+                                    try:
+                                        df_contrato[col] = df_contrato[col].astype(str).str.replace('R$', '', regex=False).str.replace('R ', '', regex=False)
+                                        # Remover pontos de milhar e converter vírgula para ponto
+                                        df_contrato[col] = df_contrato[col].str.replace(r'\.(?=\d{3})', '', regex=True).str.replace(',', '.').str.strip()
+                                        df_contrato[col] = pd.to_numeric(df_contrato[col], errors='coerce')
+                                    except Exception as e:
+                                        pass
+                                
+                                
+                                if situacao_col:
+                                    # Filtrar apenas valores em aberto (SITUAÇÃO != "ok")
+                                    df_aberto = df_contrato[df_contrato[situacao_col].astype(str).str.upper() != 'OK'].copy()
+                                    
+                                    if len(df_aberto) == 0:
+                                        st.success("✅ Nenhum valor em aberto!")
+                                    else:
+                                        # Para UPAS, usar índice 0 para mês e índice 7 para valor
+                                        coluna_mes = None
+                                        coluna_valor = None
+                                        
+                                        if len(df_aberto.columns) > 0:
+                                            coluna_mes = df_aberto.columns[0]  # Índice 0 - mês
+                                        if len(df_aberto.columns) > 7:
+                                            coluna_valor = df_aberto.columns[7]  # Índice 7 - valor
+                                        
+                                        if coluna_mes and coluna_valor:
+                                            # Converter valores da coluna 7 para numérico
+                                            try:
+                                                df_aberto[coluna_valor] = df_aberto[coluna_valor].astype(str)
+                                                df_aberto[coluna_valor] = df_aberto[coluna_valor].str.replace('R$', '', regex=False)
+                                                df_aberto[coluna_valor] = df_aberto[coluna_valor].str.replace('R ', '', regex=False)
+                                                df_aberto[coluna_valor] = df_aberto[coluna_valor].str.replace(' ', '', regex=False)
+                                                df_aberto[coluna_valor] = df_aberto[coluna_valor].str.replace(r'\.(?=\d{3})', '', regex=True)
+                                                df_aberto[coluna_valor] = df_aberto[coluna_valor].str.replace(',', '.')
+                                                df_aberto[coluna_valor] = df_aberto[coluna_valor].str.strip()
+                                                df_aberto[coluna_valor] = pd.to_numeric(df_aberto[coluna_valor], errors='coerce')
+                                            except:
+                                                pass
+                                            
+                                            # Agrupar por mês - cada par COMPETENCIA → TOTAL é um mês
+                                            valores_por_mes = []
+                                            total_geral = 0
+                                            
+                                            # Lista de meses em ordem (começando em JUNHO)
+                                            meses_lista = ['JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO', 'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO']
+                                            
+                                            # Resetar índice
+                                            df_aberto_reset = df_aberto.reset_index(drop=True)
+                                            
+                                            # Encontrar todos os pares COMPETENCIA → TOTAL
+                                            pares_competencia_total = []
+                                            competencia_idx = None
+                                            
+                                            for idx in range(len(df_aberto_reset)):
+                                                valor_col = str(df_aberto_reset.iloc[idx][coluna_mes]).strip().upper()
+                                                
+                                                if 'COMPET' in valor_col:
+                                                    # Se já tinha uma COMPETENCIA aberta, fechar com o índice anterior
+                                                    if competencia_idx is not None:
+                                                        pares_competencia_total.append((competencia_idx, idx - 1))
+                                                    competencia_idx = idx
+                                                elif 'TOTAL' in valor_col and competencia_idx is not None:
+                                                    # Fechar o par COMPETENCIA → TOTAL
+                                                    pares_competencia_total.append((competencia_idx, idx))
+                                                    competencia_idx = None
+                                            
+                                            # Se sobrou uma COMPETENCIA sem TOTAL, fechar no final
+                                            if competencia_idx is not None:
+                                                pares_competencia_total.append((competencia_idx, len(df_aberto_reset) - 1))
+                                            
+                                            # Processar cada par (cada par é um mês)
+                                            for idx_par, (inicio_idx, fim_idx) in enumerate(pares_competencia_total):
+                                                if idx_par < len(meses_lista):
+                                                    mes_nome = meses_lista[idx_par]
+                                                    
+                                                    # Pegar linhas entre COMPETENCIA e TOTAL (excluindo as linhas COMPETENCIA e TOTAL)
+                                                    indices_linhas = list(range(inicio_idx + 1, fim_idx))
+                                                    
+                                                    if len(indices_linhas) > 0:
+                                                        df_mes_grupo = df_aberto_reset.loc[indices_linhas]
+                                                        valor_mes = df_mes_grupo[coluna_valor].sum()
+                                                        
+                                                        if pd.notna(valor_mes) and valor_mes > 0:
+                                                            valores_por_mes.append({
+                                                                'Mês': mes_nome,
+                                                                'Valor em Aberto': valor_mes
+                                                            })
+                                                            total_geral += valor_mes
+                                            
+                                            # Formatar valor para exibição brasileira
+                                            def formatar_valor(valor):
+                                                if pd.isna(valor) or valor == 0:
+                                                    return "R$ 0,00"
+                                                # Formato brasileiro: R$ 1.266.790,38
+                                                valor_str = f"{valor:,.2f}"
+                                                valor_str = valor_str.replace(',', 'X').replace('.', ',').replace('X', '.')
+                                                return f"R$ {valor_str}"
+                                            
+                                            # Calcular total geral (soma de todos os valores da coluna 7)
+                                            if total_geral == 0:
+                                                total_geral = df_aberto[coluna_valor].sum()
+                                            
+                                            # Formatar valor para exibição brasileira
+                                            def formatar_valor(valor):
+                                                if pd.isna(valor) or valor == 0:
+                                                    return "R$ 0,00"
+                                                # Formato brasileiro: R$ 1.266.790,38
+                                                valor_str = f"{valor:,.2f}"
+                                                valor_str = valor_str.replace(',', 'X').replace('.', ',').replace('X', '.')
+                                                return f"R$ {valor_str}"
+                                            
+                                            # Mostrar valores por mês e total
+                                            st.markdown("**💰 VALOR EM ABERTO VIVA RIO**")
+                                            html_table = '<div style="margin: 20px 0;"><table style="width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.02); border-radius: 8px; overflow: hidden;">'
+                                            html_table += '<thead><tr style="background: rgba(59, 130, 246, 0.15);"><th style="padding: 12px 16px; text-align: left; font-weight: 600; color: rgba(255,255,255,0.9); border-bottom: 2px solid rgba(255,255,255,0.1);">Mês</th><th style="padding: 12px 16px; text-align: right; font-weight: 600; color: rgba(255,255,255,0.9); border-bottom: 2px solid rgba(255,255,255,0.1);">Valor</th></tr></thead><tbody>'
+                                            
+                                            # Adicionar cada mês
+                                            if valores_por_mes:
+                                                for idx, item in enumerate(valores_por_mes):
+                                                    row_style = "background: rgba(255,255,255,0.02);" if idx % 2 == 0 else "background: rgba(255,255,255,0.05);"
+                                                    html_table += f'<tr style="{row_style}"><td style="padding: 10px 16px; color: rgba(255,255,255,0.9);">{item["Mês"]}</td><td style="padding: 10px 16px; text-align: right; color: rgba(255,255,255,0.9);">{formatar_valor(item["Valor em Aberto"])}</td></tr>'
+                                            else:
+                                                # Se não encontrou meses, mostrar aviso
+                                                html_table += '<tr><td colspan="2" style="padding: 10px 16px; color: rgba(255,255,255,0.7); text-align: center; font-style: italic;">Nenhum mês identificado</td></tr>'
+                                            
+                                            # Linha de total (sempre no final)
+                                            html_table += f'<tr style="background: rgba(16, 185, 129, 0.15); font-weight: 700; border-top: 2px solid rgba(255,255,255,0.1);"><td style="padding: 12px 16px; color: rgba(255,255,255,0.95); font-weight: 700;">Total</td><td style="padding: 12px 16px; text-align: right; color: rgba(255,255,255,0.95); font-weight: 700;">{formatar_valor(total_geral)}</td></tr>'
+                                            html_table += '</tbody></table></div>'
+                                            
+                                            st.markdown(html_table, unsafe_allow_html=True)
+                                            st.caption(f"📊 Total de {len(df_aberto)} registros em aberto")
                                         else:
-                                            st.metric("📈 Valor Médio", "R$ 0,00")
+                                            st.warning("⚠️ Não foi possível identificar as colunas necessárias (índice 0 para mês e índice 7 para valor)")
+                                        
+                                        # Mostrar tabela com valores em aberto
+                                        st.markdown("---")
+                                        
+                                        # Últimos 3 meses de faturamento (OUTUBRO, NOVEMBRO, DEZEMBRO) - valores do índice 2
+                                        meses_faturamento = ['OUTUBRO', 'NOVEMBRO', 'DEZEMBRO']
+                                        
+                                        if coluna_mes and len(df_contrato.columns) > 2:
+                                            coluna_total_faturamento = df_contrato.columns[2]  # Índice 2
+                                            
+                                            # Converter valores da coluna índice 2 para numérico
+                                            try:
+                                                df_contrato[coluna_total_faturamento] = df_contrato[coluna_total_faturamento].astype(str)
+                                                df_contrato[coluna_total_faturamento] = df_contrato[coluna_total_faturamento].str.replace('R$', '', regex=False)
+                                                df_contrato[coluna_total_faturamento] = df_contrato[coluna_total_faturamento].str.replace('R ', '', regex=False)
+                                                df_contrato[coluna_total_faturamento] = df_contrato[coluna_total_faturamento].str.replace(' ', '', regex=False)
+                                                df_contrato[coluna_total_faturamento] = df_contrato[coluna_total_faturamento].str.replace(r'\.(?=\d{3})', '', regex=True)
+                                                df_contrato[coluna_total_faturamento] = df_contrato[coluna_total_faturamento].str.replace(',', '.')
+                                                df_contrato[coluna_total_faturamento] = df_contrato[coluna_total_faturamento].str.strip()
+                                                df_contrato[coluna_total_faturamento] = pd.to_numeric(df_contrato[coluna_total_faturamento], errors='coerce')
+                                            except:
+                                                pass
+                                            
+                                            # Encontrar totais de cada mês usando a mesma lógica de pares COMPETENCIA → TOTAL
+                                            df_contrato_reset = df_contrato.reset_index(drop=True)
+                                            pares_competencia_total_fat = []
+                                            competencia_idx = None
+                                            
+                                            for idx in range(len(df_contrato_reset)):
+                                                valor_col = str(df_contrato_reset.iloc[idx][coluna_mes]).strip().upper()
+                                                
+                                                if 'COMPET' in valor_col:
+                                                    if competencia_idx is not None:
+                                                        pares_competencia_total_fat.append((competencia_idx, idx - 1))
+                                                    competencia_idx = idx
+                                                elif 'TOTAL' in valor_col and competencia_idx is not None:
+                                                    pares_competencia_total_fat.append((competencia_idx, idx))
+                                                    competencia_idx = None
+                                            
+                                            if competencia_idx is not None:
+                                                pares_competencia_total_fat.append((competencia_idx, len(df_contrato_reset) - 1))
+                                            
+                                            # Processar meses de faturamento (OUTUBRO, NOVEMBRO, DEZEMBRO)
+                                            meses_faturamento_dados = []
+                                            ordem_meses_fat = ['JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO', 'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO']
+                                            
+                                            for idx_par, (inicio_idx, fim_idx) in enumerate(pares_competencia_total_fat):
+                                                if idx_par < len(ordem_meses_fat):
+                                                    mes_nome = ordem_meses_fat[idx_par]
+                                                    
+                                                    # Se for um dos meses de faturamento, pegar o valor TOTAL (linha fim_idx, coluna índice 2)
+                                                    if mes_nome in meses_faturamento:
+                                                        valor_total_mes = df_contrato_reset.iloc[fim_idx][coluna_total_faturamento]
+                                                        if pd.notna(valor_total_mes) and valor_total_mes > 0:
+                                                            meses_faturamento_dados.append({
+                                                                'Mês': mes_nome,
+                                                                'Total': valor_total_mes
+                                                            })
+                                            
+                                            # Mostrar tabela dos últimos 3 meses
+                                            if meses_faturamento_dados:
+                                                st.markdown("**📅 Últimos 3 Meses de Faturamento:**")
+                                                html_ultimos_meses = '<div style="margin: 20px 0;"><table style="width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.02); border-radius: 8px; overflow: hidden;">'
+                                                html_ultimos_meses += '<thead><tr style="background: rgba(139, 92, 246, 0.15);"><th style="padding: 12px 16px; text-align: left; font-weight: 600; color: rgba(255,255,255,0.9); border-bottom: 2px solid rgba(255,255,255,0.1);">Mês</th><th style="padding: 12px 16px; text-align: right; font-weight: 600; color: rgba(255,255,255,0.9); border-bottom: 2px solid rgba(255,255,255,0.1);">Total</th></tr></thead><tbody>'
+                                                
+                                                for idx, item in enumerate(meses_faturamento_dados):
+                                                    row_style = "background: rgba(255,255,255,0.02);" if idx % 2 == 0 else "background: rgba(255,255,255,0.05);"
+                                                    html_ultimos_meses += f'<tr style="{row_style}"><td style="padding: 10px 16px; color: rgba(255,255,255,0.9);">{item["Mês"]}</td><td style="padding: 10px 16px; text-align: right; color: rgba(255,255,255,0.9);">{formatar_valor(item["Total"])}</td></tr>'
+                                                
+                                                html_ultimos_meses += '</tbody></table></div>'
+                                                st.markdown(html_ultimos_meses, unsafe_allow_html=True)
+                                        
+                                        st.markdown("---")
+                                        st.markdown("**📋 Detalhamento de Valores em Aberto:**")
+                                        st.dataframe(
+                                            df_aberto.head(20),
+                                            use_container_width=True,
+                                            hide_index=True
+                                        )
+                                        
+                                        if len(df_aberto) > 20:
+                                            st.caption(f"Mostrando 20 de {len(df_aberto)} registros em aberto")
+                                else:
+                                    st.warning("⚠️ Não foi possível identificar colunas de SITUAÇÃO ou valores monetários")
                             
-                            # Mostrar tabela resumida
-                            st.markdown("---")
-                            st.markdown("**📋 Dados Detalhados:**")
-                            
-                            # Mostrar primeiras 10 linhas
-                            st.dataframe(
-                                df_contrato.head(10),
-                                use_container_width=True,
-                                hide_index=True
-                            )
-                            
-                            # Se houver muitos dados, mostrar total
-                            if len(df_contrato) > 10:
-                                st.caption(f"Mostrando 10 de {len(df_contrato)} registros totais")
+                            else:
+                                # Para outros contratos, mostrar apenas a tabela (sem métricas)
+                                st.markdown("**📋 Dados Detalhados:**")
+                                
+                                # Mostrar tabela completa
+                                st.dataframe(
+                                    df_contrato,
+                                    use_container_width=True,
+                                    hide_index=True
+                                )
+                                
+                                # Mostrar total de registros como caption
+                                st.caption(f"Total de {len(df_contrato)} registros")
                     
                     except Exception as e:
                         st.error(f"❌ Erro ao carregar dados de {contrato}: {str(e)}")
