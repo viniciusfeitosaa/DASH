@@ -19,6 +19,26 @@ st.set_page_config(
 # CSS personalizado moderno e minimalista
 st.markdown("""
     <style>
+    /* Garantir que o viewport seja respeitado */
+    html {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+    }
+    
+    /* Container principal responsivo */
+    .main .block-container {
+        max-width: 100%;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    @media screen and (min-width: 1920px) {
+        .main .block-container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+    }
+    
     .main-header {
         font-size: 2.5rem;
         font-weight: bold;
@@ -469,6 +489,414 @@ st.markdown("""
         font-size: 1.5rem;
         font-weight: 700;
         color: white;
+    }
+    
+    /* ============================================
+       RESPONSIVIDADE - Mobile First Approach
+       ============================================ */
+    
+    /* Telas pequenas (Celular) - até 768px */
+    @media screen and (max-width: 768px) {
+        .main-header {
+            font-size: 1.5rem !important;
+            padding: 0.5rem 0 !important;
+            margin-bottom: 1rem !important;
+        }
+        
+        .system-card {
+            padding: 1rem !important;
+            margin: 0.5rem 0 !important;
+            border-radius: 12px !important;
+        }
+        
+        .card-header-modern {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 1rem !important;
+            margin-bottom: 1.5rem !important;
+            padding-bottom: 1rem !important;
+        }
+        
+        .card-icon-wrapper {
+            width: 48px !important;
+            height: 48px !important;
+        }
+        
+        .card-icon {
+            width: 24px !important;
+            height: 24px !important;
+        }
+        
+        .card-title-modern {
+            font-size: 1.25rem !important;
+        }
+        
+        .card-subtitle {
+            font-size: 0.85rem !important;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr !important;
+            gap: 1rem !important;
+        }
+        
+        .stat-item {
+            padding: 1rem !important;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem !important;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem !important;
+        }
+        
+        .status-badge {
+            padding: 0.75rem !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+        }
+        
+        .status-text-modern {
+            font-size: 0.9rem !important;
+        }
+        
+        /* Sidebar mobile */
+        section[data-testid="stSidebar"] {
+            min-width: 200px !important;
+        }
+        
+        .logo {
+            flex-direction: column !important;
+            align-items: center !important;
+            text-align: center !important;
+        }
+        
+        .logo-icon {
+            width: 40px !important;
+            height: 40px !important;
+        }
+        
+        .logo-title {
+            font-size: 0.9rem !important;
+        }
+        
+        .logo-subtitle {
+            font-size: 0.75rem !important;
+        }
+        
+        /* Tabelas responsivas */
+        .stDataFrame {
+            font-size: 0.75rem !important;
+        }
+        
+        [data-testid="stDataFrameResizable"] {
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+        
+        /* Expanders */
+        [data-testid="stExpanderDetails"] {
+            padding: 1rem !important;
+        }
+        
+        /* Botões da sidebar */
+        section[data-testid="stSidebar"] button {
+            font-size: 0.9rem !important;
+            padding: 0.6rem 1rem !important;
+        }
+        
+        /* Tabelas HTML customizadas */
+        table {
+            font-size: 0.75rem !important;
+        }
+        
+        table th, table td {
+            padding: 8px 12px !important;
+        }
+    }
+    
+    /* Telas médias (Tablet) - 768px a 1024px */
+    @media screen and (min-width: 769px) and (max-width: 1024px) {
+        .main-header {
+            font-size: 2rem !important;
+        }
+        
+        .system-card {
+            padding: 1.5rem !important;
+        }
+        
+        .card-title-modern {
+            font-size: 1.5rem !important;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        
+        .stat-value {
+            font-size: 1.35rem !important;
+        }
+    }
+    
+    /* Telas grandes (TV/Desktop grande) - acima de 1920px */
+    @media screen and (min-width: 1920px) {
+        .main-header {
+            font-size: 3.5rem !important;
+            padding: 2rem 0 !important;
+            margin-bottom: 3rem !important;
+        }
+        
+        .system-card {
+            padding: 3rem !important;
+            border-radius: 24px !important;
+            margin: 2rem 0 !important;
+        }
+        
+        .card-header-modern {
+            margin-bottom: 3rem !important;
+            padding-bottom: 2rem !important;
+        }
+        
+        .card-icon-wrapper {
+            width: 96px !important;
+            height: 96px !important;
+            border-radius: 16px !important;
+        }
+        
+        .card-icon {
+            width: 48px !important;
+            height: 48px !important;
+        }
+        
+        .card-title-modern {
+            font-size: 2.5rem !important;
+            margin-bottom: 0.75rem !important;
+        }
+        
+        .card-subtitle {
+            font-size: 1.25rem !important;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 2rem !important;
+            margin-bottom: 3rem !important;
+        }
+        
+        .stat-item {
+            padding: 2rem !important;
+            border-radius: 16px !important;
+        }
+        
+        .stat-label {
+            font-size: 1.125rem !important;
+            margin-bottom: 0.75rem !important;
+        }
+        
+        .stat-value {
+            font-size: 2.25rem !important;
+        }
+        
+        .status-badge {
+            padding: 1.5rem !important;
+            border-radius: 12px !important;
+            margin-bottom: 3rem !important;
+        }
+        
+        .status-indicator-modern {
+            width: 16px !important;
+            height: 16px !important;
+        }
+        
+        .status-text-modern {
+            font-size: 1.5rem !important;
+        }
+        
+        /* Sidebar TV */
+        section[data-testid="stSidebar"] {
+            min-width: 350px !important;
+        }
+        
+        .logo-icon {
+            width: 72px !important;
+            height: 72px !important;
+        }
+        
+        .logo-title {
+            font-size: 1.5rem !important;
+        }
+        
+        .logo-subtitle {
+            font-size: 1.125rem !important;
+        }
+        
+        /* Botões da sidebar TV */
+        section[data-testid="stSidebar"] button {
+            font-size: 1.25rem !important;
+            padding: 1rem 1.5rem !important;
+            margin-bottom: 0.75rem !important;
+        }
+        
+        /* Tabelas TV */
+        .stDataFrame {
+            font-size: 1.125rem !important;
+        }
+        
+        .stDataFrame th {
+            font-size: 1.125rem !important;
+            padding: 16px 24px !important;
+        }
+        
+        .stDataFrame td {
+            font-size: 1rem !important;
+            padding: 14px 24px !important;
+        }
+        
+        /* Tabelas HTML customizadas TV */
+        table {
+            font-size: 1.125rem !important;
+        }
+        
+        table th, table td {
+            padding: 16px 24px !important;
+        }
+        
+        /* Expanders TV */
+        [data-testid="stExpander"] {
+            border-radius: 16px !important;
+            margin-bottom: 1.5rem !important;
+        }
+        
+        [data-testid="stExpanderDetails"] {
+            padding: 2rem !important;
+        }
+        
+        /* Métricas TV */
+        [data-testid="stMetricValue"] {
+            font-size: 2rem !important;
+        }
+        
+        [data-testid="stMetricLabel"] {
+            font-size: 1.125rem !important;
+        }
+    }
+    
+    /* Telas muito grandes (TV 4K) - acima de 2560px */
+    @media screen and (min-width: 2560px) {
+        .main-header {
+            font-size: 4.5rem !important;
+            padding: 3rem 0 !important;
+        }
+        
+        .card-title-modern {
+            font-size: 3rem !important;
+        }
+        
+        .stat-value {
+            font-size: 3rem !important;
+        }
+        
+        .status-text-modern {
+            font-size: 2rem !important;
+        }
+        
+        section[data-testid="stSidebar"] button {
+            font-size: 1.5rem !important;
+            padding: 1.25rem 2rem !important;
+        }
+        
+        table {
+            font-size: 1.5rem !important;
+        }
+    }
+    
+    /* Ajustes gerais de responsividade */
+    @media screen and (max-width: 768px) {
+        /* Container principal */
+        .main .block-container {
+            padding: 1rem !important;
+        }
+        
+        /* Esconder elementos desnecessários em mobile */
+        .card-glow {
+            display: none !important;
+        }
+    }
+    
+    /* Ajustes para orientação landscape em mobile */
+    @media screen and (max-width: 768px) and (orientation: landscape) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        
+        .card-header-modern {
+            flex-direction: row !important;
+            align-items: center !important;
+        }
+    }
+    
+    /* Tabelas HTML customizadas responsivas */
+    table {
+        width: 100% !important;
+        display: table !important;
+        border-collapse: collapse !important;
+    }
+    
+    @media screen and (max-width: 768px) {
+        /* Tabelas em mobile - scroll horizontal se necessário */
+        div[style*="margin: 20px 0"] {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+        
+        div[style*="margin: 20px 0"] table {
+            min-width: 100% !important;
+        }
+    }
+    
+    /* Ajustes para impressão */
+    @media print {
+        .system-card {
+            page-break-inside: avoid !important;
+        }
+        
+        section[data-testid="stSidebar"] {
+            display: none !important;
+        }
+    }
+    
+    /* Melhorias de acessibilidade e usabilidade */
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+    
+    /* Ajustes para telas touch */
+    @media (hover: none) and (pointer: coarse) {
+        button, .nav-item, [data-testid="stExpanderSummary"] {
+            min-height: 44px !important;
+            min-width: 44px !important;
+        }
+    }
+    
+    /* Ocultar botão de Deploy e menu principal */
+    [data-testid="stAppDeployButton"],
+    [data-testid="stAppDeployButton"] button,
+    [data-testid="stMainMenu"],
+    [data-testid="stMainMenu"] button,
+    .stAppDeployButton {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    /* Ocultar toolbar actions se necessário */
+    [data-testid="stToolbarActions"] {
+        display: none !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -1232,7 +1660,7 @@ else:
                                                 html_table += '<tr><td colspan="2" style="padding: 10px 16px; color: rgba(255,255,255,0.7); text-align: center; font-style: italic;">Nenhum mês identificado</td></tr>'
                                             
                                             # Linha de total (sempre no final)
-                                            html_table += f'<tr style="background: rgba(16, 185, 129, 0.15); font-weight: 700; border-top: 2px solid rgba(255,255,255,0.1);"><td style="padding: 12px 16px; color: rgba(255,255,255,0.95); font-weight: 700;">Total</td><td style="padding: 12px 16px; text-align: right; color: rgba(255,255,255,0.95); font-weight: 700;">{formatar_valor(total_geral)}</td></tr>'
+                                            html_table += f'<tr style="background: rgba(16, 185, 129, 0.15); font-weight: 700; border-top: 2px solid rgba(255,255,255,0.1);"><td style="padding: 12px 16px; color: rgba(255,255,255,0.95); font-weight: 700;">Total</td><td style="padding: 12px 16px; text-align: right; color: #ef4444; font-weight: 700;">{formatar_valor(total_geral)}</td></tr>'
                                             html_table += '</tbody></table></div>'
                                             
                                             st.markdown(html_table, unsafe_allow_html=True)
@@ -1441,19 +1869,7 @@ else:
                                         else:
                                             st.info(f"ℹ️ Foram encontrados {len(pares_competencia_total_outros)} períodos na planilha, mas nenhum corresponde aos meses de faturamento esperados para {contrato} ({', '.join(meses_faturamento)}). O primeiro mês esperado é {primeiro_mes_contrato.get(contrato, 'SETEMBRO')}.")
                                 
-                                # Tabela de detalhamento
-                                st.markdown("---")
-                                st.markdown("**📋 Dados Detalhados:**")
-                                
-                                # Mostrar tabela completa
-                                st.dataframe(
-                                    df_contrato,
-                                    use_container_width=True,
-                                    hide_index=True
-                                )
-                                
-                                # Mostrar total de registros como caption
-                                st.caption(f"Total de {len(df_contrato)} registros")
+                                # Tabela de detalhamento removida (oculta)
                     
                     except Exception as e:
                         st.error(f"❌ Erro ao carregar dados de {contrato}: {str(e)}")
@@ -1466,9 +1882,4 @@ else:
 
 # Código antigo das tabs removido - agora usando sistema de cards
 
-# Rodapé
-st.markdown("---")
-st.markdown(
-    "<div style='text-align: center; color: #666;'>Painel de Monitoramento Dashboard | Criado com Streamlit</div>",
-    unsafe_allow_html=True
-)
+# Rodapé removido
