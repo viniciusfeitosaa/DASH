@@ -11,7 +11,7 @@ import base64
 # Configuração da página
 st.set_page_config(
     page_title="Painel de Monitoramento Dashboard",
-    page_icon="📊",
+    page_icon="logo.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -898,6 +898,25 @@ st.markdown("""
     [data-testid="stToolbarActions"] {
         display: none !important;
     }
+    
+    /* Estilizar ícone keyboard_double_arrow_right */
+    [data-testid="stIconMaterial"] {
+        color: rgba(59, 130, 246, 0.9) !important;
+        font-size: 1.2rem !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    /* Efeito hover no ícone */
+    [data-testid="stExpanderSummary"]:hover [data-testid="stIconMaterial"] {
+        color: rgba(59, 130, 246, 1) !important;
+        transform: translateX(4px) !important;
+    }
+    
+    /* Rotação do ícone quando expander está aberto */
+    [data-testid="stExpander"][aria-expanded="true"] [data-testid="stIconMaterial"] {
+        transform: rotate(90deg) !important;
+        color: rgba(59, 130, 246, 1) !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -1268,10 +1287,6 @@ def create_system_card(sistema_nome, sistema_info, data_formatada):
         '<div class="stat-label">Status</div>'
         f'<div class="stat-value" style="color: {status_color};">{status_text.title()}</div>'
         '</div>'
-        '<div class="stat-item">'
-        '<div class="stat-label">Total de Registros</div>'
-        f'<div class="stat-value">{total_registros}</div>'
-        '</div>'
         '<div class="stat-item highlight">'
         '<div class="stat-label">Última Verificação</div>'
         f'<div class="stat-value">{data_formatada}</div>'
@@ -1311,6 +1326,245 @@ if selected_nav == "Geral":
         status_text_sis = "operacional" if info['status'] == 'ok' else "com problemas"
         sistemas_resumo_html += f'<div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 8px;"><span style="font-weight: 500; color: white; font-size: 1rem;">{sistema}: {status_text_sis}</span></div>'
     
+    # Criar gráfico de linha do tempo com faturamento da Viva Saúde (todos os contratos)
+    # Lista de contratos com seus GIDs
+    contratos_viva = {
+        "UPAS": "2145277226",
+        "EVOLUIR": "1328866497",
+        "CPSS": "1291655672",
+        "CRATEUS": "1439815652",
+        "ITAPIPOCA": "974197710"
+    }
+    
+    # Extrair sheet_id da URL principal
+    import re
+    sheet_id_match = re.search(r'/d/([a-zA-Z0-9-_]+)', DATA_URL)
+    sheet_id = sheet_id_match.group(1) if sheet_id_match else None
+    
+    # Dicionário para armazenar faturamento por mês
+    faturamento_por_mes = {}
+    
+    # Processar cada contrato
+    for contrato, gid in contratos_viva.items():
+        try:
+            if sheet_id and gid:
+                # Usar a mesma URL que funciona nas tabelas HTML
+                url_aba = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&gid={gid}"
+                df_contrato = pd.read_csv(url_aba)
+                df_contrato = df_contrato.dropna(how='all').reset_index(drop=True)
+                
+                if len(df_contrato) > 0:
+                    # Identificar colunas
+                    coluna_mes = None
+                    coluna_total = None
+                    
+                    if len(df_contrato.columns) > 0:
+                        coluna_mes = df_contrato.columns[0]  # Índice 0
+                    
+                    # Para todos os contratos, usar índice 3 para faturamento
+                    if len(df_contrato.columns) > 3:
+                        coluna_total = df_contrato.columns[3]  # Índice 3
+                    
+                    if coluna_mes and coluna_total:
+                        # Converter valores para numérico
+                        try:
+                            df_contrato[coluna_total] = df_contrato[coluna_total].astype(str).str.replace('R$', '', regex=False).str.replace('R ', '', regex=False)
+                            df_contrato[coluna_total] = df_contrato[coluna_total].str.replace(' ', '', regex=False)
+                            df_contrato[coluna_total] = df_contrato[coluna_total].str.replace(r'\.(?=\d{3})', '', regex=True)
+                            df_contrato[coluna_total] = df_contrato[coluna_total].str.replace(',', '.')
+                            df_contrato[coluna_total] = df_contrato[coluna_total].str.strip()
+                            df_contrato[coluna_total] = pd.to_numeric(df_contrato[coluna_total], errors='coerce')
+                        except:
+                            pass
+                        
+                        # Encontrar pares COMPETENCIA → TOTAL
+                        df_contrato_reset = df_contrato.reset_index(drop=True)
+                        pares_competencia_total = []
+                        competencia_idx = None
+                        
+                        for idx in range(len(df_contrato_reset)):
+                            try:
+                                valor_col = str(df_contrato_reset.iloc[idx][coluna_mes]).strip().upper()
+                                
+                                if any(keyword in valor_col for keyword in ['COMPET', 'COMPETÊNCIA', 'COMPETENCIA']):
+                                    if competencia_idx is not None:
+                                        pares_competencia_total.append((competencia_idx, idx - 1))
+                                    competencia_idx = idx
+                                elif any(keyword in valor_col for keyword in ['TOTAL', 'TOT', 'TOTAIS']) and competencia_idx is not None:
+                                    pares_competencia_total.append((competencia_idx, idx))
+                                    competencia_idx = None
+                            except:
+                                continue
+                        
+                        if competencia_idx is not None:
+                            pares_competencia_total.append((competencia_idx, len(df_contrato_reset) - 1))
+                        
+                        # Ordem completa dos meses
+                        ordem_meses_completa = ['JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO', 'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO']
+                        
+                        # Processar meses e valores - identificar o mês real a partir dos dados
+                        for idx_par, (inicio_idx, fim_idx) in enumerate(pares_competencia_total):
+                            # Tentar identificar o mês real a partir dos dados entre COMPETENCIA e TOTAL
+                            mes_nome = None
+                            
+                            # Procurar o mês na linha seguinte à COMPETENCIA
+                            for idx in range(inicio_idx + 1, min(inicio_idx + 5, fim_idx + 1)):
+                                try:
+                                    valor_celula = str(df_contrato_reset.iloc[idx][coluna_mes]).strip().upper()
+                                    # Verificar se é um mês conhecido
+                                    for mes in ordem_meses_completa:
+                                        if mes in valor_celula:
+                                            mes_nome = mes
+                                            break
+                                    if mes_nome:
+                                        break
+                                except:
+                                    continue
+                            
+                            # Se não encontrou o mês, tentar usar o índice (fallback)
+                            if mes_nome is None:
+                                # Mapear primeiro mês de cada contrato como fallback
+                                primeiro_mes_contrato = {
+                                    'EVOLUIR': 'OUTUBRO',
+                                    'CPSS': 'SETEMBRO',
+                                    'CRATEUS': 'SETEMBRO',
+                                    'ITAPIPOCA': 'SETEMBRO',
+                                    'UPAS': 'SETEMBRO'
+                                }
+                                primeiro_mes = primeiro_mes_contrato.get(contrato, 'SETEMBRO')
+                                idx_primeiro_mes = ordem_meses_completa.index(primeiro_mes) if primeiro_mes in ordem_meses_completa else 3
+                                mes_idx = idx_primeiro_mes + idx_par
+                                if mes_idx < len(ordem_meses_completa):
+                                    mes_nome = ordem_meses_completa[mes_idx]
+                            
+                            # Apenas processar meses a partir de OUTUBRO
+                            if mes_nome and mes_nome in ['OUTUBRO', 'NOVEMBRO', 'DEZEMBRO']:
+                                try:
+                                    valor_total_mes = df_contrato_reset.iloc[fim_idx][coluna_total]
+                                    if pd.notna(valor_total_mes) and valor_total_mes > 0:
+                                        if mes_nome not in faturamento_por_mes:
+                                            faturamento_por_mes[mes_nome] = 0
+                                        faturamento_por_mes[mes_nome] += valor_total_mes
+                                except:
+                                    continue
+        except:
+            continue
+        
+    # Criar gráfico de linha (sempre exibir, mesmo sem dados)
+    # Filtrar apenas meses a partir de OUTUBRO
+    meses_filtrados = ['OUTUBRO', 'NOVEMBRO', 'DEZEMBRO']
+    meses_ordenados = []
+    valores_ordenados = []
+    
+    for mes in meses_filtrados:
+        if mes in faturamento_por_mes and faturamento_por_mes[mes] > 0:
+            meses_ordenados.append(mes)
+            valores_ordenados.append(faturamento_por_mes[mes])
+    
+    # Criar gráfico sempre (mesmo sem dados, para debug)
+    fig_linha_tempo = None
+    if len(meses_ordenados) > 0:
+        fig_linha_tempo = go.Figure()
+        
+        fig_linha_tempo.add_trace(go.Scatter(
+            x=meses_ordenados,
+            y=valores_ordenados,
+            mode='lines+markers',
+            name='Faturamento Total',
+            line=dict(color='#3b82f6', width=3),
+            marker=dict(size=12, color='#3b82f6', line=dict(width=2, color='white')),
+            fill='tonexty',
+            fillcolor='rgba(59, 130, 246, 0.15)',
+            hovertemplate='<b>%{x}</b><br>Faturamento: R$ %{y:,.2f}<extra></extra>'
+        ))
+        
+        fig_linha_tempo.update_layout(
+            title={
+                'text': 'Faturamento Mensal - Viva Saúde (Todos os Contratos)',
+                'font': {'size': 18, 'color': 'white'},
+                'x': 0.5,
+                'xanchor': 'center'
+            },
+            xaxis=dict(
+                title=dict(text='Mês', font=dict(size=14, color='white')),
+                tickfont=dict(size=12, color='white'),
+                gridcolor='rgba(255, 255, 255, 0.1)',
+                categoryorder='array',
+                categoryarray=['OUTUBRO', 'NOVEMBRO', 'DEZEMBRO']
+            ),
+            yaxis=dict(
+                title=dict(text='Faturamento (R$)', font=dict(size=14, color='white')),
+                tickfont=dict(size=12, color='white'),
+                gridcolor='rgba(255, 255, 255, 0.1)',
+                tickformat=',.0f'
+            ),
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white'),
+            height=400,
+            margin=dict(l=50, r=20, t=50, b=50),
+            hovermode='x unified'
+        )
+    
+    # Criar gráfico de pizza com as 3 empresas
+    empresas = list(system_status.keys())
+    valores = [1] * len(empresas)  # Cada empresa tem peso igual
+    
+    # Cores para cada empresa
+    cores = {
+        'Viva Saúde': '#3b82f6',
+        'Coop Vitta': '#8b5cf6',
+        'Delta': '#10b981'
+    }
+    
+    # Criar gráfico de pizza
+    fig_pizza = go.Figure(data=[go.Pie(
+        labels=empresas,
+        values=valores,
+        hole=0.4,  # Donut chart
+        marker=dict(
+            colors=[cores.get(empresa, '#6b7280') for empresa in empresas],
+            line=dict(color='rgba(255, 255, 255, 0.1)', width=2)
+        ),
+        textinfo='label+percent',
+        textfont=dict(size=14, color='white'),
+        hovertemplate='<b>%{label}</b><br>Status: Operacional<extra></extra>'
+    )])
+    
+    fig_pizza.update_layout(
+        title={
+            'text': 'Distribuição dos Sistemas',
+            'font': {'size': 18, 'color': 'white'},
+            'x': 0.5,
+            'xanchor': 'center'
+        },
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='white'),
+        showlegend=True,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.1,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=12, color='white')
+        ),
+        height=400,
+        margin=dict(l=20, r=20, t=50, b=50)
+    )
+    
+    # Criar container para a área de visão geral com ID único
+    st.markdown('<div id="visao-geral-container">', unsafe_allow_html=True)
+    
+    # Exibir gráficos lado a lado em telas grandes, empilhados em telas pequenas
+    col1, col2 = st.columns(2)
+    with col1:
+        st.plotly_chart(fig_pizza, use_container_width=True, key="pizza-chart")
+    with col2:
+        if fig_linha_tempo:
+            st.plotly_chart(fig_linha_tempo, use_container_width=True, key="timeline-chart")
+    
     # Construir o HTML do card sem comentários e de forma compacta
     geral_card_html = (
         '<div class="system-card" id="geral-card" style="display: block;">'
@@ -1331,30 +1585,6 @@ if selected_nav == "Geral":
         f'<span class="status-indicator-modern {status_geral}" id="geral-status"></span>'
         f'<span class="status-text-modern" id="geral-status-text">{status_text}</span>'
         '</div>'
-        '<div class="stats-grid">'
-        '<div class="stat-item">'
-        '<div class="stat-label">Sistemas Operacionais</div>'
-        f'<div class="stat-value" id="geral-operacionais">{operacionais}</div>'
-        '</div>'
-        '<div class="stat-item">'
-        '<div class="stat-label">Sistemas com Problemas</div>'
-        f'<div class="stat-value" id="geral-problemas">{problemas}</div>'
-        '</div>'
-        '<div class="stat-item highlight">'
-        '<div class="stat-label">Status Geral</div>'
-        f'<div class="stat-value" id="geral-status-geral" style="color: {status_color};">{status_geral_text}</div>'
-        '</div>'
-        '<div class="stat-item">'
-        '<div class="stat-label">Última Verificação</div>'
-        f'<div class="stat-value" id="geral-last-update">{data_formatada}</div>'
-        '</div>'
-        '</div>'
-        '<div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">'
-        '<div class="stat-label" style="margin-bottom: 15px; font-weight: 600;">Status por Sistema:</div>'
-        '<div id="geral-sistemas-resumo" style="display: flex; flex-direction: column; gap: 10px;">'
-        + sistemas_resumo_html +
-        '</div>'
-        '</div>'
         '</div>'
         '</div>'
     )
@@ -1362,12 +1592,31 @@ if selected_nav == "Geral":
     # Renderizar o card diretamente como HTML
     st.markdown(geral_card_html, unsafe_allow_html=True)
     
-    # CSS adicional para garantir renderização correta
+    # Fechar container
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # CSS adicional para garantir renderização correta e responsividade dos gráficos
     st.markdown("""
     <style>
     .system-card .card-body {
         position: relative;
         z-index: 1;
+    }
+    
+    /* Responsividade dos gráficos - empilhar em telas pequenas */
+    @media screen and (max-width: 1024px) {
+        [data-testid="column"] {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+    
+    /* Em telas grandes, manter lado a lado */
+    @media screen and (min-width: 1025px) {
+        [data-testid="column"] {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
     }
     </style>
     """, unsafe_allow_html=True)
@@ -1415,10 +1664,6 @@ else:
             '<div class="stat-label">Status</div>'
             f'<div class="stat-value" style="color: {status_color};">{status_text_sis.title()}</div>'
             '</div>'
-            '<div class="stat-item">'
-            '<div class="stat-label">Total de Registros</div>'
-            '<div class="stat-value">294</div>'
-            '</div>'
             '<div class="stat-item highlight">'
             '<div class="stat-label">Última Verificação</div>'
             f'<div class="stat-value">{data_formatada}</div>'
@@ -1432,8 +1677,6 @@ else:
         
         # Módulo de Contratos Ativos (apenas para Viva Saúde)
         if selected_nav == "Viva Saúde":
-            st.markdown('<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);"><h3 style="font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 15px;">Contratos Ativos</h3></div>', unsafe_allow_html=True)
-            
             # Lista de contratos com seus GIDs (IDs das abas do Google Sheets)
             contratos = {
                 "UPAS": "2145277226",
@@ -1442,6 +1685,129 @@ else:
                 "CRATEUS": "1439815652",
                 "ITAPIPOCA": "974197710"
             }
+            
+            # Extrair sheet_id da URL principal
+            import re
+            sheet_id_match = re.search(r'/d/([a-zA-Z0-9-_]+)', DATA_URL)
+            sheet_id = sheet_id_match.group(1) if sheet_id_match else None
+            
+            # Processar todos os contratos para identificar valores em aberto
+            valores_aberto_por_contrato = {}
+            
+            for contrato, gid in contratos.items():
+                try:
+                    if sheet_id and gid:
+                        url_aba = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
+                        df_contrato = pd.read_csv(url_aba)
+                        df_contrato = df_contrato.dropna(how='all').reset_index(drop=True)
+                        
+                        if len(df_contrato) > 0:
+                            # Para UPAS, usar lógica de valores em aberto
+                            if contrato == "UPAS":
+                                # Encontrar coluna SITUAÇÃO
+                                situacao_col = None
+                                for col in df_contrato.columns:
+                                    col_lower = str(col).lower().strip()
+                                    if any(keyword in col_lower for keyword in ['situa', 'status', 'situação', 'situacao', 'sit']):
+                                        situacao_col = col
+                                        break
+                                
+                                if situacao_col:
+                                    # Filtrar apenas valores em aberto (SITUAÇÃO != "ok")
+                                    df_aberto = df_contrato[df_contrato[situacao_col].astype(str).str.upper() != 'OK'].copy()
+                                    
+                                    if len(df_aberto) > 0:
+                                        # Identificar colunas de mês e valor
+                                        mes_col = None
+                                        valor_col = None
+                                        
+                                        if len(df_aberto.columns) > 0:
+                                            mes_col = df_aberto.columns[0]  # Índice 0
+                                        if len(df_aberto.columns) > 7:
+                                            valor_col = df_aberto.columns[7]  # Índice 7
+                                        
+                                        if mes_col and valor_col:
+                                            # Converter valores para numérico
+                                            try:
+                                                df_aberto[valor_col] = df_aberto[valor_col].astype(str).str.replace('R$', '', regex=False).str.replace('R ', '', regex=False)
+                                                df_aberto[valor_col] = df_aberto[valor_col].str.replace(' ', '', regex=False)
+                                                df_aberto[valor_col] = df_aberto[valor_col].str.replace(r'\.(?=\d{3})', '', regex=True)
+                                                df_aberto[valor_col] = df_aberto[valor_col].str.replace(',', '.')
+                                                df_aberto[valor_col] = df_aberto[valor_col].str.strip()
+                                                df_aberto[valor_col] = pd.to_numeric(df_aberto[valor_col], errors='coerce')
+                                                
+                                                # Calcular total de valores em aberto
+                                                total_aberto = df_aberto[valor_col].sum()
+                                                if pd.notna(total_aberto) and total_aberto > 0:
+                                                    valores_aberto_por_contrato[contrato] = total_aberto
+                                            except:
+                                                pass
+                            
+                            # Para outros contratos, verificar se há valores em aberto (pode ser implementado depois)
+                            # Por enquanto, apenas UPAS tem lógica de valores em aberto
+                except:
+                    continue
+            
+            # Criar gráfico de barras mostrando valores em aberto por contrato
+            if valores_aberto_por_contrato:
+                contratos_com_aberto = list(valores_aberto_por_contrato.keys())
+                valores_aberto = list(valores_aberto_por_contrato.values())
+                
+                # Cores para cada contrato
+                cores_contratos = {
+                    "UPAS": "#ef4444",
+                    "EVOLUIR": "#f59e0b",
+                    "CPSS": "#8b5cf6",
+                    "CRATEUS": "#10b981",
+                    "ITAPIPOCA": "#3b82f6"
+                }
+                
+                fig_barras_aberto = go.Figure()
+                
+                fig_barras_aberto.add_trace(go.Bar(
+                    x=contratos_com_aberto,
+                    y=valores_aberto,
+                    name='Valores em Aberto',
+                    marker=dict(
+                        color=[cores_contratos.get(contrato, '#6b7280') for contrato in contratos_com_aberto],
+                        line=dict(color='rgba(255, 255, 255, 0.2)', width=1)
+                    ),
+                    text=[f'R$ {valor:,.2f}'.replace(',', 'X').replace('.', ',').replace('X', '.') for valor in valores_aberto],
+                    textposition='outside',
+                    textfont=dict(size=12, color='white'),
+                    hovertemplate='<b>%{x}</b><br>Valor em Aberto: R$ %{y:,.2f}<extra></extra>'
+                ))
+                
+                fig_barras_aberto.update_layout(
+                    title={
+                        'text': 'Pagamentos em Aberto por Contrato - Viva Saúde',
+                        'font': {'size': 18, 'color': 'white'},
+                        'x': 0.5,
+                        'xanchor': 'center'
+                    },
+                    xaxis=dict(
+                        title=dict(text='Contrato', font=dict(size=14, color='white')),
+                        tickfont=dict(size=12, color='white'),
+                        gridcolor='rgba(255, 255, 255, 0.1)'
+                    ),
+                    yaxis=dict(
+                        title=dict(text='Valor em Aberto (R$)', font=dict(size=14, color='white')),
+                        tickfont=dict(size=12, color='white'),
+                        gridcolor='rgba(255, 255, 255, 0.1)',
+                        tickformat=',.0f'
+                    ),
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    font=dict(color='white'),
+                    height=400,
+                    margin=dict(l=50, r=20, t=50, b=50),
+                    showlegend=False
+                )
+                
+                # Exibir o gráfico
+                st.plotly_chart(fig_barras_aberto, use_container_width=True)
+            
+            st.markdown('<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);"><h3 style="font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 15px;">Contratos Ativos</h3></div>', unsafe_allow_html=True)
             
             # Extrair sheet_id da URL principal
             import re
@@ -1670,8 +2036,8 @@ else:
                                         # Mostrar tabela com valores em aberto
                                         st.markdown("---")
                                         
-                                        # Últimos meses de faturamento (SETEMBRO, OUTUBRO, NOVEMBRO, DEZEMBRO) - valores do índice 3
-                                        meses_faturamento = ['SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO']
+                                        # Últimos meses de faturamento (OUTUBRO, NOVEMBRO, DEZEMBRO) - valores do índice 3
+                                        meses_faturamento = ['OUTUBRO', 'NOVEMBRO', 'DEZEMBRO']
                                         
                                         if coluna_mes and len(df_contrato.columns) > 3:
                                             coluna_total_faturamento = df_contrato.columns[3]  # Índice 3
@@ -1713,17 +2079,38 @@ else:
                                             ordem_meses_fat = ['JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO', 'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO']
                                             
                                             for idx_par, (inicio_idx, fim_idx) in enumerate(pares_competencia_total_fat):
-                                                if idx_par < len(ordem_meses_fat):
-                                                    mes_nome = ordem_meses_fat[idx_par]
-                                                    
-                                                    # Se for um dos meses de faturamento, pegar o valor TOTAL (linha fim_idx, coluna índice 2)
-                                                    if mes_nome in meses_faturamento:
-                                                        valor_total_mes = df_contrato_reset.iloc[fim_idx][coluna_total_faturamento]
-                                                        if pd.notna(valor_total_mes) and valor_total_mes > 0:
-                                                            meses_faturamento_dados.append({
-                                                                'Mês': mes_nome,
-                                                                'Total': valor_total_mes
-                                                            })
+                                                # Tentar identificar o mês real a partir dos dados entre COMPETENCIA e TOTAL
+                                                mes_nome = None
+                                                
+                                                # Procurar o mês na linha seguinte à COMPETENCIA
+                                                for idx in range(inicio_idx + 1, min(inicio_idx + 5, fim_idx + 1)):
+                                                    try:
+                                                        valor_celula = str(df_contrato_reset.iloc[idx][coluna_mes]).strip().upper()
+                                                        # Verificar se é um mês conhecido
+                                                        for mes in ordem_meses_fat:
+                                                            if mes in valor_celula:
+                                                                mes_nome = mes
+                                                                break
+                                                        if mes_nome:
+                                                            break
+                                                    except:
+                                                        continue
+                                                
+                                                # Se não encontrou o mês, tentar usar o índice (fallback)
+                                                if mes_nome is None:
+                                                    # Assumir que o primeiro par é SETEMBRO (índice 3)
+                                                    mes_idx = 3 + idx_par  # SETEMBRO é índice 3
+                                                    if mes_idx < len(ordem_meses_fat):
+                                                        mes_nome = ordem_meses_fat[mes_idx]
+                                                
+                                                # Se for um dos meses de faturamento, pegar o valor TOTAL
+                                                if mes_nome and mes_nome in meses_faturamento:
+                                                    valor_total_mes = df_contrato_reset.iloc[fim_idx][coluna_total_faturamento]
+                                                    if pd.notna(valor_total_mes) and valor_total_mes > 0:
+                                                        meses_faturamento_dados.append({
+                                                            'Mês': mes_nome,
+                                                            'Total': valor_total_mes
+                                                        })
                                             
                                             # Mostrar tabela dos meses de faturamento
                                             if meses_faturamento_dados:
