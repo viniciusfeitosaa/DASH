@@ -1236,18 +1236,17 @@ else:
                                             html_table += '</tbody></table></div>'
                                             
                                             st.markdown(html_table, unsafe_allow_html=True)
-                                            st.caption(f"📊 Total de {len(df_aberto)} registros em aberto")
                                         else:
                                             st.warning("⚠️ Não foi possível identificar as colunas necessárias (índice 0 para mês e índice 7 para valor)")
                                         
                                         # Mostrar tabela com valores em aberto
                                         st.markdown("---")
                                         
-                                        # Últimos 3 meses de faturamento (OUTUBRO, NOVEMBRO, DEZEMBRO) - valores do índice 2
-                                        meses_faturamento = ['OUTUBRO', 'NOVEMBRO', 'DEZEMBRO']
+                                        # Últimos meses de faturamento (SETEMBRO, OUTUBRO, NOVEMBRO, DEZEMBRO) - valores do índice 3
+                                        meses_faturamento = ['SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO']
                                         
-                                        if coluna_mes and len(df_contrato.columns) > 2:
-                                            coluna_total_faturamento = df_contrato.columns[2]  # Índice 2
+                                        if coluna_mes and len(df_contrato.columns) > 3:
+                                            coluna_total_faturamento = df_contrato.columns[3]  # Índice 3
                                             
                                             # Converter valores da coluna índice 2 para numérico
                                             try:
@@ -1298,9 +1297,9 @@ else:
                                                                 'Total': valor_total_mes
                                                             })
                                             
-                                            # Mostrar tabela dos últimos 3 meses
+                                            # Mostrar tabela dos meses de faturamento
                                             if meses_faturamento_dados:
-                                                st.markdown("**📅 Últimos 3 Meses de Faturamento:**")
+                                                st.markdown("**📅 Últimos Meses de Faturamento:**")
                                                 html_ultimos_meses = '<div style="margin: 20px 0;"><table style="width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.02); border-radius: 8px; overflow: hidden;">'
                                                 html_ultimos_meses += '<thead><tr style="background: rgba(139, 92, 246, 0.15);"><th style="padding: 12px 16px; text-align: left; font-weight: 600; color: rgba(255,255,255,0.9); border-bottom: 2px solid rgba(255,255,255,0.1);">Mês</th><th style="padding: 12px 16px; text-align: right; font-weight: 600; color: rgba(255,255,255,0.9); border-bottom: 2px solid rgba(255,255,255,0.1);">Total</th></tr></thead><tbody>'
                                                 
@@ -1311,21 +1310,139 @@ else:
                                                 html_ultimos_meses += '</tbody></table></div>'
                                                 st.markdown(html_ultimos_meses, unsafe_allow_html=True)
                                         
-                                        st.markdown("---")
-                                        st.markdown("**📋 Detalhamento de Valores em Aberto:**")
-                                        st.dataframe(
-                                            df_aberto.head(20),
-                                            use_container_width=True,
-                                            hide_index=True
-                                        )
-                                        
-                                        if len(df_aberto) > 20:
-                                            st.caption(f"Mostrando 20 de {len(df_aberto)} registros em aberto")
+                                        # Tabela de detalhamento removida (oculta)
                                 else:
                                     st.warning("⚠️ Não foi possível identificar colunas de SITUAÇÃO ou valores monetários")
                             
                             else:
-                                # Para outros contratos, mostrar apenas a tabela (sem métricas)
+                                # Para outros contratos, mostrar últimos meses de faturamento
+                                # Mapear meses por contrato (EVOLUIR começa em OUTUBRO)
+                                meses_por_contrato = {
+                                    'EVOLUIR': ['OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'],
+                                    'CPSS': ['SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'],
+                                    'CRATEUS': ['SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'],
+                                    'ITAPIPOCA': ['SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO']
+                                }
+                                
+                                meses_faturamento = meses_por_contrato.get(contrato, ['SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'])
+                                
+                                # Identificar coluna de mês (índice 0) e coluna de total (índice 3)
+                                coluna_mes_outros = None
+                                coluna_total_outros = None
+                                
+                                if len(df_contrato.columns) > 0:
+                                    coluna_mes_outros = df_contrato.columns[0]  # Índice 0
+                                if len(df_contrato.columns) > 3:
+                                    coluna_total_outros = df_contrato.columns[3]  # Índice 3
+                                
+                                if coluna_mes_outros and coluna_total_outros:
+                                    # Converter valores da coluna índice 3 para numérico
+                                    try:
+                                        df_contrato[coluna_total_outros] = df_contrato[coluna_total_outros].astype(str)
+                                        df_contrato[coluna_total_outros] = df_contrato[coluna_total_outros].str.replace('R$', '', regex=False)
+                                        df_contrato[coluna_total_outros] = df_contrato[coluna_total_outros].str.replace('R ', '', regex=False)
+                                        df_contrato[coluna_total_outros] = df_contrato[coluna_total_outros].str.replace(' ', '', regex=False)
+                                        df_contrato[coluna_total_outros] = df_contrato[coluna_total_outros].str.replace(r'\.(?=\d{3})', '', regex=True)
+                                        df_contrato[coluna_total_outros] = df_contrato[coluna_total_outros].str.replace(',', '.')
+                                        df_contrato[coluna_total_outros] = df_contrato[coluna_total_outros].str.strip()
+                                        df_contrato[coluna_total_outros] = pd.to_numeric(df_contrato[coluna_total_outros], errors='coerce')
+                                    except:
+                                        pass
+                                    
+                                    # Encontrar totais de cada mês usando pares COMPETENCIA → TOTAL
+                                    df_contrato_reset = df_contrato.reset_index(drop=True)
+                                    pares_competencia_total_outros = []
+                                    competencia_idx = None
+                                    
+                                    # Verificar se há dados no DataFrame
+                                    if len(df_contrato_reset) == 0:
+                                        st.warning(f"⚠️ Planilha {contrato} está vazia")
+                                    else:
+                                        for idx in range(len(df_contrato_reset)):
+                                            try:
+                                                valor_col = str(df_contrato_reset.iloc[idx][coluna_mes_outros]).strip().upper()
+                                                
+                                                # Procurar por COMPETENCIA ou variações
+                                                if any(keyword in valor_col for keyword in ['COMPET', 'COMPETÊNCIA', 'COMPETENCIA']):
+                                                    if competencia_idx is not None:
+                                                        pares_competencia_total_outros.append((competencia_idx, idx - 1))
+                                                    competencia_idx = idx
+                                                # Procurar por TOTAL ou variações
+                                                elif any(keyword in valor_col for keyword in ['TOTAL', 'TOT', 'TOTAIS']) and competencia_idx is not None:
+                                                    pares_competencia_total_outros.append((competencia_idx, idx))
+                                                    competencia_idx = None
+                                            except:
+                                                continue
+                                        
+                                        if competencia_idx is not None:
+                                            pares_competencia_total_outros.append((competencia_idx, len(df_contrato_reset) - 1))
+                                    
+                                    # Processar meses de faturamento
+                                    meses_faturamento_dados_outros = []
+                                    
+                                    # Mapear primeiro mês de cada contrato
+                                    primeiro_mes_contrato = {
+                                        'EVOLUIR': 'OUTUBRO',
+                                        'CPSS': 'SETEMBRO',
+                                        'CRATEUS': 'SETEMBRO',
+                                        'ITAPIPOCA': 'SETEMBRO'
+                                    }
+                                    
+                                    # Ordem completa dos meses
+                                    ordem_meses_completa = ['JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO', 'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO']
+                                    
+                                    # Encontrar índice do primeiro mês do contrato
+                                    primeiro_mes = primeiro_mes_contrato.get(contrato, 'SETEMBRO')
+                                    idx_primeiro_mes = ordem_meses_completa.index(primeiro_mes) if primeiro_mes in ordem_meses_completa else 3
+                                    
+                                    # Criar ordem de meses começando do primeiro mês do contrato
+                                    ordem_meses_outros = ordem_meses_completa[idx_primeiro_mes:] + ordem_meses_completa[:idx_primeiro_mes]
+                                    
+                                    for idx_par, (inicio_idx, fim_idx) in enumerate(pares_competencia_total_outros):
+                                        if idx_par < len(ordem_meses_outros):
+                                            mes_nome = ordem_meses_outros[idx_par]
+                                            
+                                            if mes_nome in meses_faturamento:
+                                                try:
+                                                    valor_total_mes = df_contrato_reset.iloc[fim_idx][coluna_total_outros]
+                                                    # Aceitar valores mesmo que sejam zero ou NaN (pode ser que o valor esteja em outra linha)
+                                                    if pd.notna(valor_total_mes):
+                                                        meses_faturamento_dados_outros.append({
+                                                            'Mês': mes_nome,
+                                                            'Total': valor_total_mes if valor_total_mes > 0 else 0
+                                                        })
+                                                except Exception as e:
+                                                    continue
+                                    
+                                    # Formatar valor para exibição brasileira
+                                    def formatar_valor_outros(valor):
+                                        if pd.isna(valor) or valor == 0:
+                                            return "R$ 0,00"
+                                        valor_str = f"{valor:,.2f}"
+                                        valor_str = valor_str.replace(',', 'X').replace('.', ',').replace('X', '.')
+                                        return f"R$ {valor_str}"
+                                    
+                                    # Mostrar tabela dos últimos meses de faturamento
+                                    if meses_faturamento_dados_outros:
+                                        st.markdown("**📅 Últimos Meses de Faturamento:**")
+                                        html_ultimos_meses_outros = '<div style="margin: 20px 0;"><table style="width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.02); border-radius: 8px; overflow: hidden;">'
+                                        html_ultimos_meses_outros += '<thead><tr style="background: rgba(139, 92, 246, 0.15);"><th style="padding: 12px 16px; text-align: left; font-weight: 600; color: rgba(255,255,255,0.9); border-bottom: 2px solid rgba(255,255,255,0.1);">Mês</th><th style="padding: 12px 16px; text-align: right; font-weight: 600; color: rgba(255,255,255,0.9); border-bottom: 2px solid rgba(255,255,255,0.1);">Total</th></tr></thead><tbody>'
+                                        
+                                        for idx, item in enumerate(meses_faturamento_dados_outros):
+                                            row_style = "background: rgba(255,255,255,0.02);" if idx % 2 == 0 else "background: rgba(255,255,255,0.05);"
+                                            html_ultimos_meses_outros += f'<tr style="{row_style}"><td style="padding: 10px 16px; color: rgba(255,255,255,0.9);">{item["Mês"]}</td><td style="padding: 10px 16px; text-align: right; color: rgba(255,255,255,0.9);">{formatar_valor_outros(item["Total"])}</td></tr>'
+                                        
+                                        html_ultimos_meses_outros += '</tbody></table></div>'
+                                        st.markdown(html_ultimos_meses_outros, unsafe_allow_html=True)
+                                    else:
+                                        # Debug: mostrar informações sobre o que foi encontrado
+                                        if len(pares_competencia_total_outros) == 0:
+                                            st.warning(f"⚠️ Não foram encontrados pares COMPETENCIA → TOTAL na planilha {contrato}. Verifique se a planilha contém essas palavras-chave.")
+                                        else:
+                                            st.info(f"ℹ️ Foram encontrados {len(pares_competencia_total_outros)} períodos na planilha, mas nenhum corresponde aos meses de faturamento esperados para {contrato} ({', '.join(meses_faturamento)}). O primeiro mês esperado é {primeiro_mes_contrato.get(contrato, 'SETEMBRO')}.")
+                                
+                                # Tabela de detalhamento
+                                st.markdown("---")
                                 st.markdown("**📋 Dados Detalhados:**")
                                 
                                 # Mostrar tabela completa
